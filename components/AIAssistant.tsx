@@ -12,18 +12,14 @@ interface AIAssistantProps {
     onAnalysisComplete?: (analysis: string, suggestion: string) => void;
 }
 
-export function AIAssistant({ client, onCategorize, onAnalysisComplete }: AIAssistantProps) {
+export function AIAssistant({ client, onAnalysisComplete }: AIAssistantProps) {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [showResults, setShowResults] = useState(false);
-    const [analysis, setAnalysis] = useState("");
-    const [suggestion, setSuggestion] = useState("");
 
     // Análisis directo de IA
     const analyzeClient = async () => {
         if (!client) return;
 
         setIsAnalyzing(true);
-        setShowResults(false);
 
         await new Promise(resolve => setTimeout(resolve, 1500));
 
@@ -64,9 +60,6 @@ export function AIAssistant({ client, onCategorize, onAnalysisComplete }: AIAssi
             }
         }
 
-        setAnalysis(analysisText);
-        setSuggestion(suggestionText);
-        setShowResults(true);
         setIsAnalyzing(false);
 
         // Pasar los resultados al componente padre

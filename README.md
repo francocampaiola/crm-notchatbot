@@ -1,24 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CRM de Clientes con IA
 
-## Getting Started
+Un CRM moderno desarrollado con Next.js, Convex y QStash que incluye gestión de clientes, análisis con IA y automatización de tareas.
 
-First, run the development server:
+## 🚀 Características
+
+- **Gestión de Clientes**: Alta, edición y listado de clientes con estados (Activo, Inactivo, Potencial)
+- **Dashboard en Tiempo Real**: Actualizaciones automáticas con Convex
+- **Asistente IA**: Análisis inteligente de clientes con recomendaciones
+- **Automatización**: Job recurrente que marca clientes inactivos automáticamente via QStash
+- **UI Moderna**: Interfaz construida con ShadcnUI y Tailwind CSS
+
+## 🛠️ Stack Tecnológico
+
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Base de Datos**: Convex (tiempo real)
+- **Automatización**: QStash
+- **UI**: ShadcnUI, Tailwind CSS
+- **IA**: Google Gemini (via AI SDK)
+
+## 🚀 Getting Started
+
+### Desarrollo Local
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Instalar dependencias
+pnpm install
+
+# Configurar variables de entorno
+cp .env.example .env.local
+
+# Iniciar servidor de desarrollo
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Variables de Entorno
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Convex
+NEXT_PUBLIC_CONVEX_URL=tu_convex_url
+CONVEX_DEPLOY_KEY=tu_convex_key
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# QStash (solo para producción)
+QSTASH_TOKEN=tu_qstash_token
+NEXT_PUBLIC_APP_URL=https://tu-app.vercel.app
+
+# OpenAI (opcional)
+OPENAI_API_KEY=tu_openai_key
+```
 
 ## Learn More
 

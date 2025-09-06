@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:qstash": "node scripts/test-qstash.js",
+    "qstash:dev": "node scripts/start-qstash-dev.js",
+    "qstash:start": "npx @upstash/qstash-cli dev",
+    "postbuild": "node scripts/setup-qstash.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

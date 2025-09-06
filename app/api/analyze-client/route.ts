@@ -72,9 +72,7 @@ Usa emojis apropiados y sé específico con las acciones recomendadas.`,
       daysSinceLastInteraction,
       model: "gemini-1.5-flash",
     });
-  } catch (error) {
-    console.error("Error en análisis de IA:", error);
-
+  } catch {
     const daysSinceLastInteraction = Math.floor(
       (Date.now() - new Date(clientData.lastInteraction).getTime()) /
         (1000 * 60 * 60 * 24)

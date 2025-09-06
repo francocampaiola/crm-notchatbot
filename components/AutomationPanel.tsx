@@ -23,8 +23,7 @@ export function AutomationPanel() {
 
             const inactiveCount = await markInactiveClients();
             setResult(inactiveCount);
-        } catch (error) {
-            console.error("Error running automation:", error);
+        } catch {
         } finally {
             setIsRunning(false);
         }
@@ -64,10 +63,10 @@ export function AutomationPanel() {
                         <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 md:p-4">
                             <div className="flex items-center gap-3 mb-2">
                                 <Clock className="w-5 h-5 text-slate-600" />
-                                <h4 className="font-medium text-slate-900">Frecuencia</h4>
+                                <h4 className="font-medium text-slate-900">Automatización</h4>
                             </div>
                             <p className="text-sm text-slate-600">
-                                Se ejecuta automáticamente cada 24 horas
+                                Se ejecuta automáticamente cada 24 horas via QStash
                             </p>
                         </div>
 
@@ -83,7 +82,7 @@ export function AutomationPanel() {
                     </div>
 
                     <div className="border-t pt-4 md:pt-6">
-                        <div className="flex items-center justify-center md:justify-end mb-4">
+                        <div className="flex items-center justify-center mb-4">
                             <Button
                                 onClick={runAutomation}
                                 disabled={isRunning}
@@ -97,7 +96,7 @@ export function AutomationPanel() {
                                 ) : (
                                     <>
                                         <Sparkles className="w-4 h-4" />
-                                        Ejecutar
+                                        Ejecutar Ahora
                                     </>
                                 )}
                             </Button>
