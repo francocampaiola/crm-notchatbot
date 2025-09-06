@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Bot, Zap } from "lucide-react";
+import { Bot } from "lucide-react";
 import { Client } from "@/types/client";
 
 interface AIAssistantProps {
@@ -73,37 +73,6 @@ export function AIAssistant({ client, onCategorize, onAnalysisComplete }: AIAssi
         onAnalysisComplete?.(analysisText, suggestionText);
     };
 
-    const categorizeClient = async () => {
-        setIsAnalyzing(true);
-
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        if (client) {
-            const daysSinceLastInteraction = Math.floor(
-                (Date.now() - new Date(client.lastInteraction).getTime()) / (1000 * 60 * 60 * 24)
-            );
-
-            let newCategory = "";
-            let reason = "";
-
-            if (daysSinceLastInteraction > 30) {
-                newCategory = "Inactivo";
-                reason = `Más de 30 días sin contacto (${daysSinceLastInteraction} días)`;
-            } else if (daysSinceLastInteraction > 7) {
-                newCategory = "Potencial";
-                reason = `Entre 7-30 días sin contacto (${daysSinceLastInteraction} días)`;
-            } else {
-                newCategory = "Activo";
-                reason = `Menos de 7 días sin contacto (${daysSinceLastInteraction} días)`;
-            }
-
-            onCategorize?.(newCategory);
-            setAnalysis(`✅ Cliente categorizado automáticamente como: "${newCategory}"`);
-            setSuggestion(`📊 Criterio aplicado: ${reason}. Estado actualizado según el algoritmo de IA.`);
-        }
-
-        setIsAnalyzing(false);
-    };
 
     return (
         <Button

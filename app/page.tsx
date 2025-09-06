@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-import { Plus, Phone, Calendar, User, Search, Filter, Zap } from "lucide-react";
+import { Plus, Phone, Calendar, User, Search, Filter, Sparkles } from "lucide-react";
 
 export default function Home() {
   const clients = useQuery(api.clients.getClients);
@@ -144,7 +144,10 @@ export default function Home() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900 mb-2">CRM de Clientes con IA</h1>
+              <h1 className="text-4xl font-bold text-slate-900 mb-2">
+                <span className="sm:hidden">CRM</span>
+                <span className="hidden sm:inline">CRM de Clientes con IA</span>
+              </h1>
             </div>
             <div className="flex gap-3">
               <AutomationPanel />
@@ -156,51 +159,51 @@ export default function Home() {
         {clients === undefined ? (
           <StatsSkeleton />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Total de clientes</p>
-                  <p className="text-3xl font-bold text-slate-900">{clients?.length || 0}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-slate-900">{clients?.length || 0}</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <User className="w-6 h-6 text-blue-600" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <User className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Activos</p>
-                  <p className="text-3xl font-bold text-emerald-600">{stats.active}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-emerald-600">{stats.active}</p>
                 </div>
-                <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                  <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                  <div className="w-2 h-2 md:w-3 md:h-3 bg-emerald-500 rounded-full"></div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Potenciales</p>
-                  <p className="text-3xl font-bold text-amber-600">{stats.potential}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-amber-600">{stats.potential}</p>
                 </div>
-                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                  <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <div className="w-2 h-2 md:w-3 md:h-3 bg-amber-500 rounded-full"></div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Inactivos</p>
-                  <p className="text-3xl font-bold text-red-600">{stats.inactive}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-red-600">{stats.inactive}</p>
                 </div>
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                  <div className="w-2 h-2 md:w-3 md:h-3 bg-red-500 rounded-full"></div>
                 </div>
               </div>
             </div>
@@ -241,7 +244,7 @@ export default function Home() {
                   Nuevo cliente
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="max-w-sm mx-auto">
                 <DialogHeader>
                   <DialogTitle>Agregar nuevo cliente</DialogTitle>
                 </DialogHeader>
@@ -292,7 +295,7 @@ export default function Home() {
         </div>
 
         {/* Clients Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {clients === undefined ? (
             // Mostrar 6 skeletons mientras cargan los datos
             Array.from({ length: 6 }).map((_, index) => (
@@ -302,7 +305,7 @@ export default function Home() {
             filteredClients?.map((client) => (
               <div
                 key={client._id}
-                className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 hover:shadow-md transition-all duration-200 cursor-pointer group"
                 onClick={() => {
                   setSelectedClient(client);
                   setAiAnalysis(null); // Limpiar análisis de IA al abrir nuevo cliente
@@ -310,11 +313,11 @@ export default function Home() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold text-lg">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm md:text-lg">
                       {client.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="ml-4">
-                      <h3 className="font-semibold text-lg text-slate-900 group-hover:text-blue-600 transition-colors">
+                      <h3 className="font-semibold text-base md:text-lg text-slate-900 group-hover:text-blue-600 transition-colors">
                         {client.name}
                       </h3>
                       <p className="text-sm text-slate-500">Cliente</p>
@@ -362,7 +365,7 @@ export default function Home() {
             setSelectedClient(null);
             setAiAnalysis(null); // Limpiar análisis de IA al cerrar modal
           }}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
@@ -404,7 +407,7 @@ export default function Home() {
                         size="sm"
                         className="flex-1 text-xs h-8 bg-white/80 hover:bg-white"
                       >
-                        <Zap className="w-3 h-3 mr-1" />
+                        <Sparkles className="w-3 h-3 mr-1" />
                         Aplicar
                       </Button>
                       <Button
@@ -419,7 +422,7 @@ export default function Home() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-slate-600">Nombre</Label>
                     <p className="font-medium text-slate-900 mt-1">{selectedClient.name}</p>

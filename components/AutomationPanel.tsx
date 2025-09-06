@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Zap, Clock, Users, AlertTriangle } from "lucide-react";
+import { Sparkles, Clock, Users, AlertTriangle } from "lucide-react";
 import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 
@@ -34,20 +34,20 @@ export function AutomationPanel() {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2">
-                    <Zap className="w-4 h-4" />
+                    <Sparkles className="w-4 h-4" />
                     Automatizar
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        <Zap className="w-5 h-5 text-amber-600" />
+                        <Sparkles className="w-5 h-5 text-amber-600" />
                         Panel de automatización
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-6">
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="space-y-4 md:space-y-6">
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 md:p-4">
                         <div className="flex items-start gap-3">
                             <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
                             <div>
@@ -60,8 +60,8 @@ export function AutomationPanel() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                    <div className="grid grid-cols-1 gap-3 md:gap-4">
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 md:p-4">
                             <div className="flex items-center gap-3 mb-2">
                                 <Clock className="w-5 h-5 text-slate-600" />
                                 <h4 className="font-medium text-slate-900">Frecuencia</h4>
@@ -71,7 +71,7 @@ export function AutomationPanel() {
                             </p>
                         </div>
 
-                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 md:p-4">
                             <div className="flex items-center gap-3 mb-2">
                                 <Users className="w-5 h-5 text-slate-600" />
                                 <h4 className="font-medium text-slate-900">Criterio</h4>
@@ -82,8 +82,8 @@ export function AutomationPanel() {
                         </div>
                     </div>
 
-                    <div className="border-t pt-6">
-                        <div className="flex items-center justify-end mb-4">
+                    <div className="border-t pt-4 md:pt-6">
+                        <div className="flex items-center justify-center md:justify-end mb-4">
                             <Button
                                 onClick={runAutomation}
                                 disabled={isRunning}
@@ -96,7 +96,7 @@ export function AutomationPanel() {
                                     </>
                                 ) : (
                                     <>
-                                        <Zap className="w-4 h-4" />
+                                        <Sparkles className="w-4 h-4" />
                                         Ejecutar
                                     </>
                                 )}
@@ -104,7 +104,7 @@ export function AutomationPanel() {
                         </div>
 
                         {result !== null && (
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 md:p-4">
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span className="font-medium text-green-900">
