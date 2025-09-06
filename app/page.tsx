@@ -8,7 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
-import { Plus, Phone, Calendar, User, Search, Filter, Bot, Zap } from "lucide-react";
+import { Plus, Phone, Calendar, User, Search, Filter } from "lucide-react";
+import { AIAssistant } from "@/components/AIAssistant";
+import { AutomationPanel } from "@/components/AutomationPanel";
+import { Client, NewClient } from "@/types/client";
 
 export default function Home() {
   const clients = useQuery(api.clients.getClients);
@@ -17,20 +20,20 @@ export default function Home() {
   const addInteraction = useMutation(api.clients.addInteraction);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [newClient, setNewClient] = useState({
+  const [newClient, setNewClient] = useState<NewClient>({
     name: "",
     phone: "",
-    status: "Potencial" as "Activo" | "Inactivo" | "Potencial"
+    status: "Potencial"
   });
   const [newInteraction, setNewInteraction] = useState("");
 
   const handleCreateClient = async () => {
     if (newClient.name && newClient.phone) {
       await createClient(newClient);
-      setNewClient({ name: "", phone: "", status: "Potencial" });
+      setNewClient({ name: "", phone: "", status: "Potencial" as const });
       setIsDialogOpen(false);
     }
   };
@@ -42,6 +45,16 @@ export default function Home() {
         description: newInteraction
       });
       setNewInteraction("");
+    }
+  };
+
+  const handleCategorizeClient = async (newStatus: string) => {
+    if (selectedClient) {
+      await updateClient({
+        id: selectedClient._id,
+        status: newStatus as "Activo" | "Inactivo" | "Potencial"
+      });
+      setSelectedClient({ ...selectedClient, status: newStatus as "Activo" | "Inactivo" | "Potencial" });
     }
   };
 
@@ -83,14 +96,11 @@ export default function Home() {
               <p className="text-slate-600 text-lg">Gestiona tu cartera con inteligencia artificial</p>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" className="gap-2">
-                <Bot className="w-4 h-4" />
-                Analizar con IA
-              </Button>
-              <Button variant="outline" className="gap-2">
-                <Zap className="w-4 h-4" />
-                Automatizar
-              </Button>
+              <AIAssistant
+                client={selectedClient}
+                onCategorize={handleCategorizeClient}
+              />
+              <AutomationPanel />
             </div>
           </div>
         </div>
@@ -348,7 +358,7 @@ export default function Home() {
                   <Label className="text-sm font-medium text-slate-600 mb-3 block">Historial de Interacciones</Label>
                   <div className="space-y-3 max-h-60 overflow-y-auto">
                     {selectedClient.interactions?.length > 0 ? (
-                      selectedClient.interactions.map((interaction: any, index: number) => (
+                      selectedClient.interactions.map((interaction, index: number) => (
                         <div key={index} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                           <p className="text-sm text-slate-900 mb-1">{interaction.description}</p>
                           <p className="text-xs text-slate-500">
