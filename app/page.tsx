@@ -6,6 +6,8 @@ import { Client, NewClient } from "@/types/client";
 
 import { AIAssistant } from "@/components/AIAssistant";
 import { AutomationPanel } from "@/components/AutomationPanel";
+import { ClientCardSkeleton } from "@/components/ClientCardSkeleton";
+import { StatsSkeleton } from "@/components/StatsSkeleton";
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
@@ -142,8 +144,7 @@ export default function Home() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900 mb-2">CRM de Clientes</h1>
-              <p className="text-slate-600 text-lg">Gestiona tu cartera con inteligencia artificial</p>
+              <h1 className="text-4xl font-bold text-slate-900 mb-2">CRM de Clientes con IA</h1>
             </div>
             <div className="flex gap-3">
               <AutomationPanel />
@@ -152,55 +153,59 @@ export default function Home() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Total de clientes</p>
-                <p className="text-3xl font-bold text-slate-900">{clients?.length || 0}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <User className="w-6 h-6 text-blue-600" />
+        {clients === undefined ? (
+          <StatsSkeleton />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Total de clientes</p>
+                  <p className="text-3xl font-bold text-slate-900">{clients?.length || 0}</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <User className="w-6 h-6 text-blue-600" />
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Activos</p>
-                <p className="text-3xl font-bold text-emerald-600">{stats.active}</p>
-              </div>
-              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Activos</p>
+                  <p className="text-3xl font-bold text-emerald-600">{stats.active}</p>
+                </div>
+                <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                  <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Potenciales</p>
-                <p className="text-3xl font-bold text-amber-600">{stats.potential}</p>
-              </div>
-              <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Potenciales</p>
+                  <p className="text-3xl font-bold text-amber-600">{stats.potential}</p>
+                </div>
+                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">Inactivos</p>
-                <p className="text-3xl font-bold text-red-600">{stats.inactive}</p>
-              </div>
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Inactivos</p>
+                  <p className="text-3xl font-bold text-red-600">{stats.inactive}</p>
+                </div>
+                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Controls */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
@@ -288,46 +293,53 @@ export default function Home() {
 
         {/* Clients Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredClients?.map((client) => (
-            <div
-              key={client._id}
-              className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-all duration-200 cursor-pointer group"
-              onClick={() => {
-                setSelectedClient(client);
-                setAiAnalysis(null); // Limpiar análisis de IA al abrir nuevo cliente
-              }}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold text-lg">
-                    {client.name.charAt(0).toUpperCase()}
+          {clients === undefined ? (
+            // Mostrar 6 skeletons mientras cargan los datos
+            Array.from({ length: 6 }).map((_, index) => (
+              <ClientCardSkeleton key={index} />
+            ))
+          ) : (
+            filteredClients?.map((client) => (
+              <div
+                key={client._id}
+                className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                onClick={() => {
+                  setSelectedClient(client);
+                  setAiAnalysis(null); // Limpiar análisis de IA al abrir nuevo cliente
+                }}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold text-lg">
+                      {client.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="font-semibold text-lg text-slate-900 group-hover:text-blue-600 transition-colors">
+                        {client.name}
+                      </h3>
+                      <p className="text-sm text-slate-500">Cliente</p>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <h3 className="font-semibold text-lg text-slate-900 group-hover:text-blue-600 transition-colors">
-                      {client.name}
-                    </h3>
-                    <p className="text-sm text-slate-500">Cliente</p>
-                  </div>
-                </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(client.status)}`}>
-                  {client.status}
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center text-slate-600">
-                  <Phone className="w-4 h-4 mr-3 text-slate-400" />
-                  <span className="text-sm">{client.phone}</span>
-                </div>
-                <div className="flex items-center text-slate-600">
-                  <Calendar className="w-4 h-4 mr-3 text-slate-400" />
-                  <span className="text-sm">
-                    {new Date(client.lastInteraction).toLocaleDateString('es-ES')}
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(client.status)}`}>
+                    {client.status}
                   </span>
                 </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center text-slate-600">
+                    <Phone className="w-4 h-4 mr-3 text-slate-400" />
+                    <span className="text-sm">{client.phone}</span>
+                  </div>
+                  <div className="flex items-center text-slate-600">
+                    <Calendar className="w-4 h-4 mr-3 text-slate-400" />
+                    <span className="text-sm">
+                      {new Date(client.lastInteraction).toLocaleDateString('es-ES')}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         {filteredClients?.length === 0 && (
