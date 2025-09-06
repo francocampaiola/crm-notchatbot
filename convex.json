@@ -1,7 +1,5 @@
 {
-    "functions": "convex/",
-    "generateCommonJSApi": false,
-    "node": {
-        "18": true
-    }
+  "node": {
+    "18": true
+  }
 }
