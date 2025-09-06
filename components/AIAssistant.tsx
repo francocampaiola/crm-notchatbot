@@ -2,52 +2,75 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Bot, Sparkles, Brain, Zap } from "lucide-react";
+import { Bot, Zap } from "lucide-react";
 import { Client } from "@/types/client";
 
 interface AIAssistantProps {
     client?: Client | null;
     onAnalyze?: (analysis: string) => void;
     onCategorize?: (category: string) => void;
+    onAnalysisComplete?: (analysis: string, suggestion: string) => void;
 }
 
-export function AIAssistant({ client, onCategorize }: AIAssistantProps) {
-    const [isOpen, setIsOpen] = useState(false);
+export function AIAssistant({ client, onCategorize, onAnalysisComplete }: AIAssistantProps) {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [showResults, setShowResults] = useState(false);
     const [analysis, setAnalysis] = useState("");
     const [suggestion, setSuggestion] = useState("");
 
-    // Simulación de análisis de IA
+    // Análisis directo de IA
     const analyzeClient = async () => {
+        if (!client) return;
+
         setIsAnalyzing(true);
+        setShowResults(false);
 
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
-        if (client) {
-            const daysSinceLastInteraction = Math.floor(
-                (Date.now() - new Date(client.lastInteraction).getTime()) / (1000 * 60 * 60 * 24)
-            );
+        const daysSinceLastInteraction = Math.floor(
+            (Date.now() - new Date(client.lastInteraction).getTime()) / (1000 * 60 * 60 * 24)
+        );
 
-            let analysisText = "";
-            let suggestionText = "";
+        let analysisText = "";
+        let suggestionText = "";
 
-            if (daysSinceLastInteraction > 30) {
-                analysisText = `Este cliente lleva ${daysSinceLastInteraction} días sin contacto. Su estado actual es "${client.status}".`;
-                suggestionText = "Recomiendo marcarlo como prioridad alta y contactarlo inmediatamente para reactivar la relación.";
-            } else if (daysSinceLastInteraction > 14) {
-                analysisText = `Cliente con ${daysSinceLastInteraction} días sin interacción. Estado: "${client.status}".`;
-                suggestionText = "Sugiero programar un seguimiento en los próximos días para mantener el contacto activo.";
+        if (daysSinceLastInteraction > 30) {
+            analysisText = `⚠️ Cliente inactivo: ${daysSinceLastInteraction} días sin contacto. Estado actual: "${client.status}".`;
+            if (client.status === "Inactivo") {
+                suggestionText = `✅ ESTADO CORRECTO: Cliente ya marcado como "Inactivo". Prioridad alta para recontacto.`;
             } else {
-                analysisText = `Cliente activo con ${daysSinceLastInteraction} días desde la última interacción.`;
-                suggestionText = "Mantener el ritmo de contacto actual. Cliente en buen estado.";
+                suggestionText = `🔴 ACCIÓN REQUERIDA: Cambiar estado a "Inactivo" y contactar urgentemente. Este cliente está en riesgo de pérdida.`;
             }
-
-            setAnalysis(analysisText);
-            setSuggestion(suggestionText);
+        } else if (daysSinceLastInteraction > 14) {
+            analysisText = `⚡ Cliente en riesgo: ${daysSinceLastInteraction} días sin interacción. Estado: "${client.status}".`;
+            if (client.status === "Potencial") {
+                suggestionText = `✅ ESTADO CORRECTO: Cliente ya marcado como "Potencial". Programar seguimiento en los próximos 3 días.`;
+            } else {
+                suggestionText = `🟡 ACCIÓN RECOMENDADA: Cambiar estado a "Potencial" y programar seguimiento en los próximos 3 días.`;
+            }
+        } else if (daysSinceLastInteraction > 7) {
+            analysisText = `✅ Cliente activo: ${daysSinceLastInteraction} días desde última interacción. Estado: "${client.status}".`;
+            if (client.status === "Activo") {
+                suggestionText = `✅ ESTADO CORRECTO: Cliente en buen estado. Continuar con el ritmo de contacto actual.`;
+            } else {
+                suggestionText = `🟢 ACCIÓN RECOMENDADA: Cambiar estado a "Activo" - cliente está comprometido.`;
+            }
+        } else {
+            analysisText = `🎯 Cliente muy activo: ${daysSinceLastInteraction} días desde última interacción. Estado: "${client.status}".`;
+            if (client.status === "Activo") {
+                suggestionText = `✅ ESTADO CORRECTO: Cliente muy comprometido. Mantener estado "Activo" y continuar la relación.`;
+            } else {
+                suggestionText = `🟢 ACCIÓN RECOMENDADA: Cambiar estado a "Activo" - cliente muy comprometido.`;
+            }
         }
 
+        setAnalysis(analysisText);
+        setSuggestion(suggestionText);
+        setShowResults(true);
         setIsAnalyzing(false);
+
+        // Pasar los resultados al componente padre
+        onAnalysisComplete?.(analysisText, suggestionText);
     };
 
     const categorizeClient = async () => {
@@ -61,102 +84,46 @@ export function AIAssistant({ client, onCategorize }: AIAssistantProps) {
             );
 
             let newCategory = "";
+            let reason = "";
 
             if (daysSinceLastInteraction > 30) {
                 newCategory = "Inactivo";
+                reason = `Más de 30 días sin contacto (${daysSinceLastInteraction} días)`;
             } else if (daysSinceLastInteraction > 7) {
                 newCategory = "Potencial";
+                reason = `Entre 7-30 días sin contacto (${daysSinceLastInteraction} días)`;
             } else {
                 newCategory = "Activo";
+                reason = `Menos de 7 días sin contacto (${daysSinceLastInteraction} días)`;
             }
 
             onCategorize?.(newCategory);
-            setAnalysis(`Cliente categorizado automáticamente como: ${newCategory}`);
-            setSuggestion(`Basado en ${daysSinceLastInteraction} días sin interacción, la IA sugiere este estado.`);
+            setAnalysis(`✅ Cliente categorizado automáticamente como: "${newCategory}"`);
+            setSuggestion(`📊 Criterio aplicado: ${reason}. Estado actualizado según el algoritmo de IA.`);
         }
 
         setIsAnalyzing(false);
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                    <Bot className="w-4 h-4" />
-                    Asistente IA
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Brain className="w-5 h-5 text-blue-600" />
-                        Asistente de inteligencia artificial
-                    </DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-6">
-                    {client && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <h3 className="font-medium text-blue-900 mb-2">Cliente seleccionado</h3>
-                            <p className="text-blue-800">{client.name}</p>
-                            <p className="text-sm text-blue-600">
-                                Estado: {client.status} | Última interacción: {new Date(client.lastInteraction).toLocaleDateString()}
-                            </p>
-                        </div>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Button
-                            onClick={analyzeClient}
-                            disabled={isAnalyzing || !client}
-                            className="h-20 flex flex-col gap-2"
-                        >
-                            <Sparkles className="w-6 h-6" />
-                            <span>Analizar cliente</span>
-                        </Button>
-
-                        <Button
-                            onClick={categorizeClient}
-                            disabled={isAnalyzing || !client}
-                            variant="outline"
-                            className="h-20 flex flex-col gap-2"
-                        >
-                            <Zap className="w-6 h-6" />
-                            <span>Categorizar automáticamente</span>
-                        </Button>
-                    </div>
-
-                    {isAnalyzing && (
-                        <div className="flex items-center justify-center py-8">
-                            <div className="flex items-center gap-3">
-                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                                <span className="text-slate-600">Analizando con IA...</span>
-                            </div>
-                        </div>
-                    )}
-
-                    {analysis && !isAnalyzing && (
-                        <div className="space-y-4">
-                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                                <h4 className="font-medium text-slate-900 mb-2">Análisis de IA</h4>
-                                <p className="text-slate-700">{analysis}</p>
-                            </div>
-
-                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                <h4 className="font-medium text-amber-900 mb-2">Recomendación</h4>
-                                <p className="text-amber-800">{suggestion}</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {!client && (
-                        <div className="text-center py-8 text-slate-500">
-                            <Bot className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                            <p>Seleccioná un cliente para usar el asistente de IA</p>
-                        </div>
-                    )}
-                </div>
-            </DialogContent>
-        </Dialog>
+        <Button
+            variant="outline"
+            size="sm"
+            className="gap-1 text-xs"
+            onClick={analyzeClient}
+            disabled={isAnalyzing || !client}
+        >
+            {isAnalyzing ? (
+                <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                    Analizando...
+                </>
+            ) : (
+                <>
+                    <Bot className="w-3 h-3" />
+                    Analizar con IA
+                </>
+            )}
+        </Button>
     );
 }

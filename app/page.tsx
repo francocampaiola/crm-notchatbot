@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-import { Plus, Phone, Calendar, User, Search, Filter } from "lucide-react";
+import { Plus, Phone, Calendar, User, Search, Filter, Zap } from "lucide-react";
 
 export default function Home() {
   const clients = useQuery(api.clients.getClients);
@@ -34,6 +34,7 @@ export default function Home() {
     status: "Potencial"
   });
   const [newInteraction, setNewInteraction] = useState("");
+  const [aiAnalysis, setAiAnalysis] = useState<{ analysis: string, suggestion: string } | null>(null);
 
   const handleCreateClient = async () => {
     if (newClient.name && newClient.phone) {
@@ -49,6 +50,20 @@ export default function Home() {
         id: selectedClient._id,
         description: newInteraction
       });
+
+      // Actualizar el estado local del cliente seleccionado
+      const newInteractionObj = {
+        date: new Date().toISOString(),
+        description: newInteraction
+      };
+
+      setSelectedClient({
+        ...selectedClient,
+        interactions: [...selectedClient.interactions, newInteractionObj],
+        lastInteraction: newInteractionObj.date,
+        updatedAt: Date.now()
+      });
+
       setNewInteraction("");
     }
   };
@@ -60,6 +75,36 @@ export default function Home() {
         status: newStatus as "Activo" | "Inactivo" | "Potencial"
       });
       setSelectedClient({ ...selectedClient, status: newStatus as "Activo" | "Inactivo" | "Potencial" });
+    }
+  };
+
+  const handleAnalysisComplete = (analysis: string, suggestion: string) => {
+    setAiAnalysis({ analysis, suggestion });
+  };
+
+  const handleApplyRecommendation = async () => {
+    if (selectedClient && aiAnalysis) {
+      const daysSinceLastInteraction = Math.floor(
+        (Date.now() - new Date(selectedClient.lastInteraction).getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      let newStatus = "";
+      if (daysSinceLastInteraction > 30) {
+        newStatus = "Inactivo";
+      } else if (daysSinceLastInteraction > 7) {
+        newStatus = "Potencial";
+      } else {
+        newStatus = "Activo";
+      }
+
+      // Solo aplicar cambio si el estado actual es diferente al recomendado
+      if (selectedClient.status !== newStatus) {
+        await handleCategorizeClient(newStatus);
+        setAiAnalysis(null);
+      } else {
+        // Si el estado ya es correcto, solo limpiar el análisis
+        setAiAnalysis(null);
+      }
     }
   };
 
@@ -101,10 +146,6 @@ export default function Home() {
               <p className="text-slate-600 text-lg">Gestiona tu cartera con inteligencia artificial</p>
             </div>
             <div className="flex gap-3">
-              <AIAssistant
-                client={selectedClient}
-                onCategorize={handleCategorizeClient}
-              />
               <AutomationPanel />
             </div>
           </div>
@@ -251,7 +292,10 @@ export default function Home() {
             <div
               key={client._id}
               className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-all duration-200 cursor-pointer group"
-              onClick={() => setSelectedClient(client)}
+              onClick={() => {
+                setSelectedClient(client);
+                setAiAnalysis(null); // Limpiar análisis de IA al abrir nuevo cliente
+              }}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center">
@@ -302,7 +346,10 @@ export default function Home() {
 
         {/* Client Detail Modal */}
         {selectedClient && (
-          <Dialog open={!!selectedClient} onOpenChange={() => setSelectedClient(null)}>
+          <Dialog open={!!selectedClient} onOpenChange={() => {
+            setSelectedClient(null);
+            setAiAnalysis(null); // Limpiar análisis de IA al cerrar modal
+          }}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-3">
@@ -310,9 +357,56 @@ export default function Home() {
                     {selectedClient.name.charAt(0).toUpperCase()}
                   </div>
                   {selectedClient.name}
+                  <AIAssistant
+                    client={selectedClient}
+                    onCategorize={handleCategorizeClient}
+                    onAnalysisComplete={handleAnalysisComplete}
+                  />
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-6">
+                {/* Sugerencias de IA */}
+                {aiAnalysis && (
+                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">AI</span>
+                      </div>
+                      <h4 className="font-medium text-slate-900 text-sm">Sugerencias de IA</h4>
+                    </div>
+
+                    <div className="bg-white/70 border border-blue-200 rounded-lg p-3">
+                      <h5 className="font-medium text-blue-900 mb-1 text-xs">Análisis</h5>
+                      <p className="text-blue-800 text-xs">{aiAnalysis.analysis}</p>
+                    </div>
+
+                    <div className="bg-white/70 border border-amber-200 rounded-lg p-3">
+                      <h5 className="font-medium text-amber-900 mb-1 text-xs">Recomendación</h5>
+                      <p className="text-amber-800 text-xs">{aiAnalysis.suggestion}</p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleApplyRecommendation}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-xs h-8 bg-white/80 hover:bg-white"
+                      >
+                        <Zap className="w-3 h-3 mr-1" />
+                        Aplicar
+                      </Button>
+                      <Button
+                        onClick={() => setAiAnalysis(null)}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-8 bg-white/80 hover:bg-white"
+                      >
+                        Descartar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-slate-600">Nombre</Label>
@@ -358,6 +452,7 @@ export default function Home() {
                     </Button>
                   </div>
                 </div>
+
 
                 <div>
                   <Label className="text-sm font-medium text-slate-600 mb-3 block">Historial de Interacciones</Label>

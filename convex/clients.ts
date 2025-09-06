@@ -59,6 +59,28 @@ export const updateClient = mutation({
   },
 });
 
+export const updateClientHistorical = mutation({
+  args: {
+    id: v.id("clients"),
+    lastInteraction: v.optional(v.string()),
+    interactions: v.optional(
+      v.array(
+        v.object({
+          date: v.string(),
+          description: v.string(),
+        })
+      )
+    ),
+  },
+  handler: async (ctx, args) => {
+    const { id, ...updates } = args;
+    return await ctx.db.patch(id, {
+      ...updates,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 export const addInteraction = mutation({
   args: {
     id: v.id("clients"),
