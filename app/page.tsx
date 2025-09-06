@@ -1,17 +1,22 @@
 "use client";
 
+import { useState } from "react";
+
+import { Client, NewClient } from "@/types/client";
+
+import { AIAssistant } from "@/components/AIAssistant";
+import { AutomationPanel } from "@/components/AutomationPanel";
+
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
+
 import { Plus, Phone, Calendar, User, Search, Filter } from "lucide-react";
-import { AIAssistant } from "@/components/AIAssistant";
-import { AutomationPanel } from "@/components/AutomationPanel";
-import { Client, NewClient } from "@/types/client";
 
 export default function Home() {
   const clients = useQuery(api.clients.getClients);
@@ -110,7 +115,7 @@ export default function Home() {
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Total Clientes</p>
+                <p className="text-sm font-medium text-slate-600">Total de clientes</p>
                 <p className="text-3xl font-bold text-slate-900">{clients?.length || 0}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -187,16 +192,16 @@ export default function Home() {
               <DialogTrigger asChild>
                 <Button className="gap-2">
                   <Plus className="w-4 h-4" />
-                  Nuevo Cliente
+                  Nuevo cliente
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Agregar Nuevo Cliente</DialogTitle>
+                  <DialogTitle>Agregar nuevo cliente</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Nombre Completo</Label>
+                    <Label htmlFor="name" className="mb-2">Nombre completo</Label>
                     <Input
                       id="name"
                       value={newClient.name}
@@ -205,16 +210,16 @@ export default function Home() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="phone">Teléfono</Label>
+                    <Label htmlFor="phone" className="mb-2">Teléfono</Label>
                     <Input
                       id="phone"
                       value={newClient.phone}
                       onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
-                      placeholder="Ej: +54 11 1234-5678"
+                      placeholder="Ej: +54 11 1234 5678"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="status">Estado Inicial</Label>
+                    <Label htmlFor="status" className="mb-2">Estado inicial</Label>
                     <Select
                       value={newClient.status}
                       onValueChange={(value: "Activo" | "Inactivo" | "Potencial") =>
@@ -232,7 +237,7 @@ export default function Home() {
                     </Select>
                   </div>
                   <Button onClick={handleCreateClient} className="w-full">
-                    Crear Cliente
+                    Crear cliente
                   </Button>
                 </div>
               </DialogContent>
@@ -287,10 +292,10 @@ export default function Home() {
               <User className="w-12 h-12 text-slate-400" />
             </div>
             <h3 className="text-lg font-medium text-slate-900 mb-2">No se encontraron clientes</h3>
-            <p className="text-slate-500 mb-6">Comienza agregando tu primer cliente</p>
+            <p className="text-slate-500 mb-6">Empezá agregando tu primer cliente</p>
             <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
               <Plus className="w-4 h-4" />
-              Agregar Cliente
+              Agregar cliente
             </Button>
           </div>
         )}
