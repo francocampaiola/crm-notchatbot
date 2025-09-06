@@ -1,103 +1,374 @@
-import Image from "next/image";
+"use client";
+
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../convex/_generated/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState } from "react";
+import { Plus, Phone, Calendar, User, Search, Filter, Bot, Zap } from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const clients = useQuery(api.clients.getClients);
+  const createClient = useMutation(api.clients.createClient);
+  const updateClient = useMutation(api.clients.updateClient);
+  const addInteraction = useMutation(api.clients.addInteraction);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [newClient, setNewClient] = useState({
+    name: "",
+    phone: "",
+    status: "Potencial" as "Activo" | "Inactivo" | "Potencial"
+  });
+  const [newInteraction, setNewInteraction] = useState("");
+
+  const handleCreateClient = async () => {
+    if (newClient.name && newClient.phone) {
+      await createClient(newClient);
+      setNewClient({ name: "", phone: "", status: "Potencial" });
+      setIsDialogOpen(false);
+    }
+  };
+
+  const handleAddInteraction = async () => {
+    if (selectedClient && newInteraction) {
+      await addInteraction({
+        id: selectedClient._id,
+        description: newInteraction
+      });
+      setNewInteraction("");
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Activo": return "bg-emerald-100 text-emerald-800 border-emerald-200";
+      case "Inactivo": return "bg-red-100 text-red-800 border-red-200";
+      case "Potencial": return "bg-amber-100 text-amber-800 border-amber-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const filteredClients = clients?.filter(client => {
+    const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.phone.includes(searchTerm);
+    const matchesStatus = statusFilter === "all" || client.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStatusStats = () => {
+    if (!clients) return { active: 0, inactive: 0, potential: 0 };
+    return {
+      active: clients.filter(c => c.status === "Activo").length,
+      inactive: clients.filter(c => c.status === "Inactivo").length,
+      potential: clients.filter(c => c.status === "Potencial").length,
+    };
+  };
+
+  const stats = getStatusStats();
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-slate-900 mb-2">CRM de Clientes</h1>
+              <p className="text-slate-600 text-lg">Gestiona tu cartera con inteligencia artificial</p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" className="gap-2">
+                <Bot className="w-4 h-4" />
+                Analizar con IA
+              </Button>
+              <Button variant="outline" className="gap-2">
+                <Zap className="w-4 h-4" />
+                Automatizar
+              </Button>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Total Clientes</p>
+                <p className="text-3xl font-bold text-slate-900">{clients?.length || 0}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <User className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Activos</p>
+                <p className="text-3xl font-bold text-emerald-600">{stats.active}</p>
+              </div>
+              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Potenciales</p>
+                <p className="text-3xl font-bold text-amber-600">{stats.potential}</p>
+              </div>
+              <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Inactivos</p>
+                <p className="text-3xl font-bold text-red-600">{stats.inactive}</p>
+              </div>
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <Input
+                  placeholder="Buscar clientes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Filtrar por estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="Activo">Activo</SelectItem>
+                  <SelectItem value="Inactivo">Inactivo</SelectItem>
+                  <SelectItem value="Potencial">Potencial</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Nuevo Cliente
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Agregar Nuevo Cliente</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Nombre Completo</Label>
+                    <Input
+                      id="name"
+                      value={newClient.name}
+                      onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
+                      placeholder="Ej: Juan Pérez"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Teléfono</Label>
+                    <Input
+                      id="phone"
+                      value={newClient.phone}
+                      onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
+                      placeholder="Ej: +54 11 1234-5678"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="status">Estado Inicial</Label>
+                    <Select
+                      value={newClient.status}
+                      onValueChange={(value: "Activo" | "Inactivo" | "Potencial") =>
+                        setNewClient({ ...newClient, status: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Activo">Activo</SelectItem>
+                        <SelectItem value="Inactivo">Inactivo</SelectItem>
+                        <SelectItem value="Potencial">Potencial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={handleCreateClient} className="w-full">
+                    Crear Cliente
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
+        {/* Clients Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredClients?.map((client) => (
+            <div
+              key={client._id}
+              className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-all duration-200 cursor-pointer group"
+              onClick={() => setSelectedClient(client)}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold text-lg">
+                    {client.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="font-semibold text-lg text-slate-900 group-hover:text-blue-600 transition-colors">
+                      {client.name}
+                    </h3>
+                    <p className="text-sm text-slate-500">Cliente</p>
+                  </div>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(client.status)}`}>
+                  {client.status}
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center text-slate-600">
+                  <Phone className="w-4 h-4 mr-3 text-slate-400" />
+                  <span className="text-sm">{client.phone}</span>
+                </div>
+                <div className="flex items-center text-slate-600">
+                  <Calendar className="w-4 h-4 mr-3 text-slate-400" />
+                  <span className="text-sm">
+                    {new Date(client.lastInteraction).toLocaleDateString('es-ES')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {filteredClients?.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <User className="w-12 h-12 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-medium text-slate-900 mb-2">No se encontraron clientes</h3>
+            <p className="text-slate-500 mb-6">Comienza agregando tu primer cliente</p>
+            <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Agregar Cliente
+            </Button>
+          </div>
+        )}
+
+        {/* Client Detail Modal */}
+        {selectedClient && (
+          <Dialog open={!!selectedClient} onOpenChange={() => setSelectedClient(null)}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
+                    {selectedClient.name.charAt(0).toUpperCase()}
+                  </div>
+                  {selectedClient.name}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-slate-600">Nombre</Label>
+                    <p className="font-medium text-slate-900 mt-1">{selectedClient.name}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-slate-600">Teléfono</Label>
+                    <p className="font-medium text-slate-900 mt-1">{selectedClient.phone}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-slate-600 mb-2 block">Estado</Label>
+                  <Select
+                    value={selectedClient.status}
+                    onValueChange={async (value: "Activo" | "Inactivo" | "Potencial") => {
+                      await updateClient({ id: selectedClient._id, status: value });
+                      setSelectedClient({ ...selectedClient, status: value });
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Activo">Activo</SelectItem>
+                      <SelectItem value="Inactivo">Inactivo</SelectItem>
+                      <SelectItem value="Potencial">Potencial</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-slate-600 mb-2 block">Agregar Interacción</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newInteraction}
+                      onChange={(e) => setNewInteraction(e.target.value)}
+                      placeholder="Ej: Llamado realizado el 18/08/25"
+                      className="flex-1"
+                    />
+                    <Button onClick={handleAddInteraction} disabled={!newInteraction.trim()}>
+                      Agregar
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-slate-600 mb-3 block">Historial de Interacciones</Label>
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {selectedClient.interactions?.length > 0 ? (
+                      selectedClient.interactions.map((interaction: any, index: number) => (
+                        <div key={index} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                          <p className="text-sm text-slate-900 mb-1">{interaction.description}</p>
+                          <p className="text-xs text-slate-500">
+                            {new Date(interaction.date).toLocaleString('es-ES')}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-slate-500">
+                        <Calendar className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                        <p className="text-sm">No hay interacciones registradas</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
     </div>
   );
 }
