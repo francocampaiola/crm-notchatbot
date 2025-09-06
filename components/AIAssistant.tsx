@@ -90,14 +90,14 @@ export function AIAssistant({ client, onCategorize }: AIAssistantProps) {
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Brain className="w-5 h-5 text-blue-600" />
-                        Asistente de Inteligencia Artificial
+                        Asistente de inteligencia artificial
                     </DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6">
                     {client && (
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <h3 className="font-medium text-blue-900 mb-2">Cliente Seleccionado</h3>
+                            <h3 className="font-medium text-blue-900 mb-2">Cliente seleccionado</h3>
                             <p className="text-blue-800">{client.name}</p>
                             <p className="text-sm text-blue-600">
                                 Estado: {client.status} | Última interacción: {new Date(client.lastInteraction).toLocaleDateString()}
@@ -112,7 +112,7 @@ export function AIAssistant({ client, onCategorize }: AIAssistantProps) {
                             className="h-20 flex flex-col gap-2"
                         >
                             <Sparkles className="w-6 h-6" />
-                            <span>Analizar Cliente</span>
+                            <span>Analizar cliente</span>
                         </Button>
 
                         <Button
@@ -122,7 +122,7 @@ export function AIAssistant({ client, onCategorize }: AIAssistantProps) {
                             className="h-20 flex flex-col gap-2"
                         >
                             <Zap className="w-6 h-6" />
-                            <span>Categorizar Automáticamente</span>
+                            <span>Categorizar automáticamente</span>
                         </Button>
                     </div>
 
@@ -152,7 +152,7 @@ export function AIAssistant({ client, onCategorize }: AIAssistantProps) {
                     {!client && (
                         <div className="text-center py-8 text-slate-500">
                             <Bot className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                            <p>Selecciona un cliente para usar el asistente de IA</p>
+                            <p>Seleccioná un cliente para usar el asistente de IA</p>
                         </div>
                     )}
                 </div>

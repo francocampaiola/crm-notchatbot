@@ -42,7 +42,7 @@ export function AutomationPanel() {
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Zap className="w-5 h-5 text-amber-600" />
-                        Panel de Automatización
+                        Panel de automatización
                     </DialogTitle>
                 </DialogHeader>
 
@@ -51,7 +51,7 @@ export function AutomationPanel() {
                         <div className="flex items-start gap-3">
                             <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
                             <div>
-                                <h3 className="font-medium text-amber-900 mb-1">Automatización de Clientes Inactivos</h3>
+                                <h3 className="font-medium text-amber-900 mb-1">Automatización de clientes inactivos</h3>
                                 <p className="text-sm text-amber-800">
                                     Esta función marca automáticamente como &quot;Inactivo&quot; a todos los clientes que no han tenido
                                     interacciones en los últimos 30 días.
@@ -67,7 +67,7 @@ export function AutomationPanel() {
                                 <h4 className="font-medium text-slate-900">Frecuencia</h4>
                             </div>
                             <p className="text-sm text-slate-600">
-                                Se ejecuta automáticamente cada 24 horas en producción
+                                Se ejecuta automáticamente cada 24 horas
                             </p>
                         </div>
 
@@ -83,13 +83,7 @@ export function AutomationPanel() {
                     </div>
 
                     <div className="border-t pt-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <div>
-                                <h4 className="font-medium text-slate-900">Ejecutar Automatización</h4>
-                                <p className="text-sm text-slate-600">
-                                    Ejecuta manualmente la verificación de clientes inactivos
-                                </p>
-                            </div>
+                        <div className="flex items-center justify-end mb-4">
                             <Button
                                 onClick={runAutomation}
                                 disabled={isRunning}
@@ -103,7 +97,7 @@ export function AutomationPanel() {
                                 ) : (
                                     <>
                                         <Zap className="w-4 h-4" />
-                                        Ejecutar Ahora
+                                        Ejecutar
                                     </>
                                 )}
                             </Button>
