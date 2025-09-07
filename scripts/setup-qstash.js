@@ -24,7 +24,7 @@ async function setupQStash() {
       },
       body: JSON.stringify({
         action: "create",
-        schedule: "0 0 * * *",
+        schedule: "*/2 * * * *",
       }),
     });
 

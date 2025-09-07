@@ -12,10 +12,10 @@ export async function POST(request: NextRequest) {
     const { action, schedule } = await request.json();
 
     if (action === "create") {
-      // Crear tarea programada para ejecutar cada 24 horas
+      // Crear tarea programada para ejecutar cada 2 minutos
       const response = await qstash.publishJSON({
         url: `${process.env.NEXT_PUBLIC_APP_URL}/api/automation/mark-inactive`,
-        schedule: schedule || "0 0 * * *", // Cada día a medianoche (cron)
+        schedule: schedule || "*/2 * * * *", // Cada 2 minutos (cron)
         retries: 3,
         headers: {
           "Content-Type": "application/json",
@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
         success: true,
         message: "Tarea programada creada exitosamente",
         scheduleId: response.messageId,
-        schedule: schedule || "0 0 * * *",
-        nextRun: "Cada día a medianoche",
+        schedule: schedule || "*/2 * * * *",
+        nextRun: "Cada 2 minutos",
       });
     }
 
