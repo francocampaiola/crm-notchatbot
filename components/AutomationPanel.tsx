@@ -66,7 +66,7 @@ export function AutomationPanel() {
                                 <h4 className="font-medium text-slate-900">Automatización</h4>
                             </div>
                             <p className="text-sm text-slate-600">
-                                Se ejecuta automáticamente cada 24 horas via QStash
+                                Se ejecuta automáticamente cada 2 minutos
                             </p>
                         </div>
 
@@ -96,7 +96,7 @@ export function AutomationPanel() {
                                 ) : (
                                     <>
                                         <Sparkles className="w-4 h-4" />
-                                        Ejecutar Ahora
+                                        Categorizar automáticamente
                                     </>
                                 )}
                             </Button>

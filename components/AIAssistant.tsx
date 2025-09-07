@@ -83,7 +83,7 @@ export function AIAssistant({ client, onAnalysisComplete }: AIAssistantProps) {
             ) : (
                 <>
                     <Bot className="w-3 h-3" />
-                    Analizar con IA
+                    Analizar cliente
                 </>
             )}
         </Button>

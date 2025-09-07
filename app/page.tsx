@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-import { Plus, Phone, Calendar, User, Search, Filter, Sparkles } from "lucide-react";
+import { Plus, Phone, Calendar, User, Search, Filter, Sparkles, ArrowUpDown, ArrowDownUp } from "lucide-react";
 
 export default function Home() {
   const clients = useQuery(api.clients.getClients);
@@ -30,6 +30,7 @@ export default function Home() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sortByLastInteraction, setSortByLastInteraction] = useState(false);
   const [newClient, setNewClient] = useState<NewClient>({
     name: "",
     phone: "",
@@ -119,11 +120,16 @@ export default function Home() {
     }
   };
 
-  const filteredClients = clients?.filter(client => {
+  const filteredAndSortedClients = clients?.filter(client => {
     const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.phone.includes(searchTerm);
     const matchesStatus = statusFilter === "all" || client.status === statusFilter;
     return matchesSearch && matchesStatus;
+  }).sort((a, b) => {
+    if (sortByLastInteraction) {
+      return new Date(b.lastInteraction).getTime() - new Date(a.lastInteraction).getTime();
+    }
+    return 0; // Sin ordenamiento adicional
   });
 
   const getStatusStats = () => {
@@ -235,6 +241,23 @@ export default function Home() {
                   <SelectItem value="Potencial">Potencial</SelectItem>
                 </SelectContent>
               </Select>
+              <Button
+                variant={sortByLastInteraction ? "default" : "outline"}
+                onClick={() => setSortByLastInteraction(!sortByLastInteraction)}
+                className="gap-2"
+              >
+                {sortByLastInteraction ? (
+                  <>
+                    <ArrowDownUp className="w-4 h-4" />
+                    Ordenado por interacción
+                  </>
+                ) : (
+                  <>
+                    <ArrowUpDown className="w-4 h-4" />
+                    Ordenar por interacción
+                  </>
+                )}
+              </Button>
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -302,7 +325,7 @@ export default function Home() {
               <ClientCardSkeleton key={index} />
             ))
           ) : (
-            filteredClients?.map((client) => (
+            filteredAndSortedClients?.map((client) => (
               <div
                 key={client._id}
                 className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 hover:shadow-md transition-all duration-200 cursor-pointer group"
@@ -345,7 +368,7 @@ export default function Home() {
           )}
         </div>
 
-        {filteredClients?.length === 0 && (
+        {filteredAndSortedClients?.length === 0 && (
           <div className="text-center py-12">
             <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <User className="w-12 h-12 text-slate-400" />
