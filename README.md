@@ -37,15 +37,20 @@ pnpm dev
 
 ```bash
 # Convex
-NEXT_PUBLIC_CONVEX_URL=tu_convex_url
-CONVEX_DEPLOY_KEY=tu_convex_key
+CONVEX_DEPLOYMENT=
+NEXT_PUBLIC_CONVEX_URL=
 
-# QStash (solo para producción)
-QSTASH_TOKEN=tu_qstash_token
-NEXT_PUBLIC_APP_URL=https://tu-app.vercel.app
+# QStash
+QSTASH_URL=
+QSTASH_TOKEN=
+QSTASH_CURRENT_SIGNING_KEY=
+QSTASH_NEXT_SIGNING_KEY=
 
-# OpenAI (opcional)
-OPENAI_API_KEY=tu_openai_key
+# App URL
+NEXT_PUBLIC_APP_URL=
+
+# Google AI
+GOOGLE_GENERATIVE_AI_API_KEY=
 ```
 
 ## Learn More
