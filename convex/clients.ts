@@ -4,7 +4,11 @@ import { mutation, query } from "./_generated/server";
 export const getClients = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("clients").collect();
+    return await ctx.db
+      .query("clients")
+      .withIndex("by_updatedAt")
+      .order("desc")
+      .collect();
   },
 });
 
@@ -26,6 +30,15 @@ export const createClient = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    // Validar unicidad de teléfono
+    const existing = await ctx.db
+      .query("clients")
+      .withIndex("by_phone", (q) => q.eq("phone", args.phone))
+      .first();
+    if (existing) {
+      throw new Error("El teléfono ya está registrado en otro cliente");
+    }
+
     const now = Date.now();
     return await ctx.db.insert("clients", {
       ...args,
@@ -52,6 +65,16 @@ export const updateClient = mutation({
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
+    // Si se intenta cambiar el teléfono, validar unicidad
+    if (updates.phone) {
+      const existing = await ctx.db
+        .query("clients")
+        .withIndex("by_phone", (q) => q.eq("phone", updates.phone!))
+        .first();
+      if (existing && existing._id !== id) {
+        throw new Error("El teléfono ya está registrado en otro cliente");
+      }
+    }
     return await ctx.db.patch(id, {
       ...updates,
       updatedAt: Date.now(),
@@ -110,19 +133,32 @@ export const markInactiveClients = mutation({
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const cutoffDate = thirtyDaysAgo.toISOString();
 
-    const clients = await ctx.db.query("clients").collect();
-    const inactiveClients = clients.filter(
-      (client) =>
-        client.lastInteraction < cutoffDate && client.status !== "Inactivo"
-    );
+    let total = 0;
+    for (const status of ["Activo", "Potencial"] as const) {
+      const toInactivate = await ctx.db
+        .query("clients")
+        .withIndex("by_status_lastInteraction", (q) =>
+          q.eq("status", status).lt("lastInteraction", cutoffDate)
+        )
+        .collect();
 
-    for (const client of inactiveClients) {
-      await ctx.db.patch(client._id, {
-        status: "Inactivo",
-        updatedAt: Date.now(),
-      });
+      for (const client of toInactivate) {
+        await ctx.db.patch(client._id, {
+          status: "Inactivo",
+          updatedAt: Date.now(),
+        });
+        total++;
+      }
     }
 
-    return inactiveClients.length;
+    return total;
+  },
+});
+
+export const deleteClient = mutation({
+  args: { id: v.id("clients") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+    return { ok: true };
   },
 });

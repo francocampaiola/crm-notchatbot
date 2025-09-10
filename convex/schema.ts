@@ -19,5 +19,8 @@ export default defineSchema({
     ),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }),
+  })
+    .index("by_phone", ["phone"])
+    .index("by_updatedAt", ["updatedAt"])
+    .index("by_status_lastInteraction", ["status", "lastInteraction"]),
 });
