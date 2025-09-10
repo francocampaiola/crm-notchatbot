@@ -31,7 +31,7 @@ Interacciones recientes: ${clientData.interactions
 `.trim();
 
     const { object } = await generateObject({
-      model: google("gemini-1.5-pro-002"),
+      model: google("gemini-2.5-pro-002"),
       schema: AnalysisSchema,
       prompt: `Eres un experto en CRM. Analiza el cliente y devuelve un JSON con las claves "analysis" y "recommendation".
 Reglas de clasificación:
@@ -48,7 +48,7 @@ ${context}`,
     return NextResponse.json({
       ...object,
       daysSinceLastInteraction,
-      model: "gemini-1.5-pro-002",
+      model: "gemini-2.5-pro-002",
     });
   } catch {
     const daysSinceLastInteraction = Math.floor(
