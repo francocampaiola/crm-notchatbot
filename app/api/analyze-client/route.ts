@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateText } from "ai";
+import { generateObject } from "ai";
 import { google } from "@ai-sdk/google";
+import { z } from "zod";
+
+const AnalysisSchema = z.object({
+  analysis: z.string().max(280),
+  recommendation: z.string().max(280),
+});
 
 export async function POST(request: NextRequest) {
   const { clientData } = await request.json();
@@ -11,7 +17,6 @@ export async function POST(request: NextRequest) {
         (1000 * 60 * 60 * 24)
     );
 
-    // Contexto para la IA
     const context = `
 Cliente: ${clientData.name}
 Teléfono: ${clientData.phone}
@@ -23,54 +28,27 @@ Interacciones recientes: ${clientData.interactions
       .slice(0, 3)
       .map((i: { description: string }) => i.description)
       .join(", ")}
-`;
+`.trim();
 
-    const { text } = await generateText({
-      model: google("gemini-1.5-flash"),
-      prompt: `Eres un experto en CRM y análisis de clientes. Analiza este cliente y proporciona recomendaciones específicas.
-
-${context}
-
-Por favor, proporciona:
-1. Un análisis conciso del estado del cliente (máximo 2 líneas)
-2. Una recomendación específica de acción (máximo 2 líneas)
-
-Criterios para el análisis:
-- Más de 30 días sin contacto = Cliente inactivo, riesgo alto
-- 14-30 días sin contacto = Cliente en riesgo, necesita seguimiento
-- 7-14 días sin contacto = Cliente activo, mantener contacto
-- Menos de 7 días = Cliente muy activo, excelente relación
-
-Formato de respuesta:
-ANÁLISIS: [tu análisis aquí]
-RECOMENDACIÓN: [tu recomendación aquí]
-
-Usa emojis apropiados y sé específico con las acciones recomendadas.`,
-      temperature: 0.7,
+    const { object } = await generateObject({
+      model: google("gemini-1.5-pro-002"),
+      schema: AnalysisSchema,
+      prompt: `Eres un experto en CRM. Analiza el cliente y devuelve un JSON con las claves "analysis" y "recommendation".
+Reglas de clasificación:
+- > 30 días sin contacto: inactivo, riesgo alto
+- 14–30 días: en riesgo
+- 7–14 días: activo
+- < 7 días: muy activo
+Sé conciso (máx 2 líneas por campo) y usa emojis apropiados.
+Contexto:
+${context}`,
+      temperature: 0.5,
     });
 
-    const lines = text.split("\n");
-    let analysis = "";
-    let recommendation = "";
-
-    for (const line of lines) {
-      if (line.startsWith("ANÁLISIS:")) {
-        analysis = line.replace("ANÁLISIS:", "").trim();
-      } else if (line.startsWith("RECOMENDACIÓN:")) {
-        recommendation = line.replace("RECOMENDACIÓN:", "").trim();
-      }
-    }
-
-    if (!analysis || !recommendation) {
-      analysis = text.split("\n")[0] || "Análisis no disponible";
-      recommendation = text.split("\n")[1] || "Recomendación no disponible";
-    }
-
     return NextResponse.json({
-      analysis,
-      recommendation,
+      ...object,
       daysSinceLastInteraction,
-      model: "gemini-1.5-flash",
+      model: "gemini-1.5-pro-002",
     });
   } catch {
     const daysSinceLastInteraction = Math.floor(
