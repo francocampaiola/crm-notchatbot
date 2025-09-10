@@ -9,6 +9,7 @@ export interface Client {
   interactions: Interaction[];
   createdAt: number;
   updatedAt: number;
+  deleted: boolean;
 }
 
 export interface Interaction {

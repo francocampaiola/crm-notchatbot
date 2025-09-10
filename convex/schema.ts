@@ -19,6 +19,7 @@ export default defineSchema({
     ),
     createdAt: v.number(),
     updatedAt: v.number(),
+    deleted: v.boolean(),
   })
     .index("by_phone", ["phone"])
     .index("by_updatedAt", ["updatedAt"])

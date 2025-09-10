@@ -46,6 +46,7 @@ export const createClient = mutation({
       interactions: [],
       createdAt: now,
       updatedAt: now,
+      deleted: false,
     });
   },
 });
@@ -158,7 +159,7 @@ export const markInactiveClients = mutation({
 export const deleteClient = mutation({
   args: { id: v.id("clients") },
   handler: async (ctx, args) => {
-    await ctx.db.delete(args.id);
-    return { ok: true };
+    await ctx.db.patch(args.id, { deleted: true, updatedAt: Date.now() });
+    return { ok: true, softDeleted: true };
   },
 });
