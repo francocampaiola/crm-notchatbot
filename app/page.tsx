@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Client, NewClient } from "@/types/client";
+import { Id } from "../convex/_generated/dataModel";
 
 import { AIAssistant } from "@/components/AIAssistant";
 import { AutomationPanel } from "@/components/AutomationPanel";
@@ -24,6 +25,7 @@ export default function Home() {
   const clients = useQuery(api.clients.getClients);
   const createClient = useMutation(api.clients.createClient);
   const updateClient = useMutation(api.clients.updateClient);
+  const deleteClient = useMutation(api.clients.deleteClient);
   const addInteraction = useMutation(api.clients.addInteraction);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -38,6 +40,12 @@ export default function Home() {
   });
   const [newInteraction, setNewInteraction] = useState("");
   const [aiAnalysis, setAiAnalysis] = useState<{ analysis: string, suggestion: string } | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleCreateClient = async () => {
     if (newClient.name && newClient.phone) {
@@ -121,6 +129,7 @@ export default function Home() {
   };
 
   const filteredAndSortedClients = clients?.filter(client => {
+    if (client.deleted === true) return false;
     const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.phone.includes(searchTerm);
     const matchesStatus = statusFilter === "all" || client.status === statusFilter;
@@ -332,6 +341,9 @@ export default function Home() {
                 onClick={() => {
                   setSelectedClient(client);
                   setAiAnalysis(null); // Limpiar análisis de IA al abrir nuevo cliente
+                  setEditName(client.name);
+                  setEditPhone(client.phone);
+                  setEditError(null);
                 }}
               >
                 <div className="flex items-start justify-between mb-4">
@@ -384,137 +396,244 @@ export default function Home() {
 
         {/* Client Detail Modal */}
         {selectedClient && (
-          <Dialog open={!!selectedClient} onOpenChange={() => {
-            setSelectedClient(null);
-            setAiAnalysis(null); // Limpiar análisis de IA al cerrar modal
-          }}>
-            <DialogContent className="max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
-                    {selectedClient.name.charAt(0).toUpperCase()}
-                  </div>
-                  {selectedClient.name}
-                  <AIAssistant
-                    client={selectedClient}
-                    onCategorize={handleCategorizeClient}
-                    onAnalysisComplete={handleAnalysisComplete}
-                  />
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-6">
-                {/* Sugerencias de IA */}
-                {aiAnalysis && (
-                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 space-y-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">AI</span>
-                      </div>
-                      <h4 className="font-medium text-slate-900 text-sm">Sugerencias de IA</h4>
+          <>
+            <Dialog open={!!selectedClient} onOpenChange={() => {
+              setSelectedClient(null);
+              setAiAnalysis(null); // Limpiar análisis de IA al cerrar modal
+              setEditError(null);
+            }}>
+              <DialogContent className="max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
+                      {selectedClient.name.charAt(0).toUpperCase()}
                     </div>
-
-                    <div className="bg-white/70 border border-blue-200 rounded-lg p-3">
-                      <h5 className="font-medium text-blue-900 mb-1 text-xs">Análisis</h5>
-                      <p className="text-blue-800 text-xs">{aiAnalysis.analysis}</p>
-                    </div>
-
-                    <div className="bg-white/70 border border-amber-200 rounded-lg p-3">
-                      <h5 className="font-medium text-amber-900 mb-1 text-xs">Recomendación</h5>
-                      <p className="text-amber-800 text-xs">{aiAnalysis.suggestion}</p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleApplyRecommendation}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 text-xs h-8 bg-white/80 hover:bg-white"
-                      >
-                        <Sparkles className="w-3 h-3 mr-1" />
-                        Aplicar
-                      </Button>
-                      <Button
-                        onClick={() => setAiAnalysis(null)}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs h-8 bg-white/80 hover:bg-white"
-                      >
-                        Descartar
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-slate-600">Nombre</Label>
-                    <p className="font-medium text-slate-900 mt-1">{selectedClient.name}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-slate-600">Teléfono</Label>
-                    <p className="font-medium text-slate-900 mt-1">{selectedClient.phone}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-slate-600 mb-2 block">Estado</Label>
-                  <Select
-                    value={selectedClient.status}
-                    onValueChange={async (value: "Activo" | "Inactivo" | "Potencial") => {
-                      await updateClient({ id: selectedClient._id, status: value });
-                      setSelectedClient({ ...selectedClient, status: value });
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Activo">Activo</SelectItem>
-                      <SelectItem value="Inactivo">Inactivo</SelectItem>
-                      <SelectItem value="Potencial">Potencial</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-slate-600 mb-2 block">Agregar Interacción</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={newInteraction}
-                      onChange={(e) => setNewInteraction(e.target.value)}
-                      placeholder="Ej: Llamado realizado el 18/08/25"
-                      className="flex-1"
+                    {selectedClient.name}
+                    <AIAssistant
+                      client={selectedClient}
+                      onCategorize={handleCategorizeClient}
+                      onAnalysisComplete={handleAnalysisComplete}
                     />
-                    <Button onClick={handleAddInteraction} disabled={!newInteraction.trim()}>
-                      Agregar
-                    </Button>
-                  </div>
-                </div>
-
-
-                <div>
-                  <Label className="text-sm font-medium text-slate-600 mb-3 block">Historial de Interacciones</Label>
-                  <div className="space-y-3 max-h-60 overflow-y-auto">
-                    {selectedClient.interactions?.length > 0 ? (
-                      selectedClient.interactions.map((interaction, index: number) => (
-                        <div key={index} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                          <p className="text-sm text-slate-900 mb-1">{interaction.description}</p>
-                          <p className="text-xs text-slate-500">
-                            {new Date(interaction.date).toLocaleString('es-ES')}
-                          </p>
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6">
+                  {/* Sugerencias de IA */}
+                  {aiAnalysis && (
+                    <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">AI</span>
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8 text-slate-500">
-                        <Calendar className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                        <p className="text-sm">No hay interacciones registradas</p>
+                        <h4 className="font-medium text-slate-900 text-sm">Sugerencias de IA</h4>
                       </div>
+
+                      <div className="bg-white/70 border border-blue-200 rounded-lg p-3">
+                        <h5 className="font-medium text-blue-900 mb-1 text-xs">Análisis</h5>
+                        <p className="text-blue-800 text-xs">{aiAnalysis.analysis}</p>
+                      </div>
+
+                      <div className="bg-white/70 border border-amber-200 rounded-lg p-3">
+                        <h5 className="font-medium text-amber-900 mb-1 text-xs">Recomendación</h5>
+                        <p className="text-amber-800 text-xs">{aiAnalysis.suggestion}</p>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleApplyRecommendation}
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 text-xs h-8 bg-white/80 hover:bg-white"
+                        >
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          Aplicar
+                        </Button>
+                        <Button
+                          onClick={() => setAiAnalysis(null)}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-8 bg-white/80 hover:bg-white"
+                        >
+                          Descartar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-slate-600">Nombre</Label>
+                      <Input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        placeholder="Nombre del cliente"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-slate-600">Teléfono</Label>
+                      <Input
+                        value={editPhone}
+                        onChange={(e) => setEditPhone(e.target.value)}
+                        placeholder="Teléfono del cliente"
+                        className="mt-1"
+                      />
+                    </div>
+                    {editError && (
+                      <p className="text-sm text-red-600">{editError}</p>
                     )}
                   </div>
+
+                  <div>
+                    <Label className="text-sm font-medium text-slate-600 mb-2 block">Estado</Label>
+                    <Select
+                      value={selectedClient.status}
+                      onValueChange={async (value: "Activo" | "Inactivo" | "Potencial") => {
+                        await updateClient({ id: selectedClient._id, status: value });
+                        setSelectedClient({ ...selectedClient, status: value });
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Activo">Activo</SelectItem>
+                        <SelectItem value="Inactivo">Inactivo</SelectItem>
+                        <SelectItem value="Potencial">Potencial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium text-slate-600 mb-2 block">Agregar interacción</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newInteraction}
+                        onChange={(e) => setNewInteraction(e.target.value)}
+                        placeholder="Ej: Llamado realizado el 18/08/25"
+                        className="flex-1"
+                      />
+                      <Button onClick={handleAddInteraction} disabled={!newInteraction.trim()}>
+                        Agregar
+                      </Button>
+                    </div>
+                  </div>
+
+
+                  <div>
+                    <Label className="text-sm font-medium text-slate-600 mb-3 block">Historial de Interacciones</Label>
+                    <div className="space-y-3 max-h-60 overflow-y-auto">
+                      {selectedClient.interactions?.length > 0 ? (
+                        selectedClient.interactions.map((interaction, index: number) => (
+                          <div key={index} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                            <p className="text-sm text-slate-900 mb-1">{interaction.description}</p>
+                            <p className="text-xs text-slate-500">
+                              {new Date(interaction.date).toLocaleString('es-ES')}
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-slate-500">
+                          <Calendar className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                          <p className="text-sm">No hay interacciones registradas</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+                {/* Footer acciones */}
+                <div className="mt-4 flex items-center justify-end gap-2">
+                  <Button
+                    variant="destructive"
+                    onClick={() => setIsDeleteConfirmOpen(true)}
+                    className="cursor-pointer"
+                    disabled={isSaving}
+                  >
+                    Eliminar cliente
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!selectedClient) return;
+                      try {
+                        setIsSaving(true);
+                        setEditError(null);
+                        const updates: { id: Id<"clients">; name?: string; phone?: string } = { id: selectedClient._id };
+                        if (editName && editName !== selectedClient.name) updates.name = editName;
+                        if (editPhone && editPhone !== selectedClient.phone) updates.phone = editPhone;
+                        if (updates.name || updates.phone) {
+                          await updateClient(updates);
+                          setSelectedClient({ ...selectedClient, name: editName, phone: editPhone, updatedAt: Date.now() });
+                        }
+                      } catch (err) {
+                        setEditError(err instanceof Error ? err.message : "Error al actualizar");
+                      } finally {
+                        setIsSaving(false);
+                      }
+                    }}
+                    className="cursor-pointer"
+                    disabled={isDeleting}
+                  >
+                    {isSaving ? (
+                      <>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-2"></div>
+                        Guardando...
+                      </>
+                    ) : (
+                      <>Guardar cambios</>
+                    )}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Confirmación de eliminación */}
+            <Dialog open={isDeleteConfirmOpen} onOpenChange={(open) => {
+              if (!open) setIsDeleting(false);
+              setIsDeleteConfirmOpen(open);
+            }}>
+              <DialogContent className="w-110 mx-auto">
+                <DialogHeader>
+                  <DialogTitle>¿Estás seguro de eliminar a este cliente?</DialogTitle>
+                </DialogHeader>
+                <p className="text-sm text-slate-600">Esta acción no se puede deshacer.</p>
+                <div className="mt-4 flex items-center justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDeleteConfirmOpen(false)}
+                    className="cursor-pointer"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      if (!selectedClient) return;
+                      try {
+                        setIsDeleting(true);
+                        await deleteClient({ id: selectedClient._id });
+                        setIsDeleteConfirmOpen(false);
+                        setSelectedClient(null);
+                      } catch (err) {
+                        setEditError(err instanceof Error ? err.message : "Error al eliminar");
+                      } finally {
+                        setIsDeleting(false);
+                      }
+                    }}
+                    className="cursor-pointer"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-2"></div>
+                        Eliminando...
+                      </>
+                    ) : (
+                      <>Eliminar definitivamente</>
+                    )}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </>
         )}
       </div>
     </div>
