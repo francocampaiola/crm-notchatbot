@@ -128,7 +128,8 @@ export default function Home() {
     }
   };
 
-  const filteredAndSortedClients = clients?.filter(client => {
+  const nonDeletedClients = clients?.filter(c => !c.deleted) ?? [];
+  const filteredAndSortedClients = nonDeletedClients.filter(client => {
     if (client.deleted === true) return false;
     const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.phone.includes(searchTerm);
@@ -142,11 +143,13 @@ export default function Home() {
   });
 
   const getStatusStats = () => {
-    if (!clients) return { active: 0, inactive: 0, potential: 0 };
+    if (!clients) return { active: 0, inactive: 0, potential: 0, total: 0 };
+    const src = nonDeletedClients;
     return {
-      active: clients.filter(c => c.status === "Activo").length,
-      inactive: clients.filter(c => c.status === "Inactivo").length,
-      potential: clients.filter(c => c.status === "Potencial").length,
+      active: src.filter(c => c.status === "Activo").length,
+      inactive: src.filter(c => c.status === "Inactivo").length,
+      potential: src.filter(c => c.status === "Potencial").length,
+      total: src.length,
     };
   };
 
@@ -179,7 +182,7 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Total de clientes</p>
-                  <p className="text-2xl md:text-3xl font-bold text-slate-900">{clients?.length || 0}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-slate-900">{stats.total}</p>
                 </div>
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <User className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
